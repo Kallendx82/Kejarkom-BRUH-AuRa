@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Steganografi - Kejarkom BRUH AuRa{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="mb-4">Steganografi</h1>
+    <p class="lead mb-5">Pilih operasi yang ingin Anda lakukan</p>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Enkripsi Steganografi</h5>
+                    <p class="card-text">Sembunyikan pesan rahasia Anda dalam sebuah gambar.</p>
+                    <div class="card-footer">
+                        <a href="/encrypt?tab=stegano" class="btn btn-primary">Mulai Enkripsi</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Dekripsi Steganografi</h5>
+                    <p class="card-text">Baca pesan tersembunyi dari sebuah gambar.</p>
+                    <div class="card-footer">
+                        <a href="/decrypt?tab=stegano" class="btn btn-primary">Mulai Dekripsi</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

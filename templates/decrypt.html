@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Dekripsi Steganografi & Kriptografi{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Dekripsi Pesan</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <ul class="nav nav-tabs mb-3" id="decryptionTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="stegano-tab" data-bs-toggle="tab" data-bs-target="#stegano" type="button" onclick="showTab('stegano')">
+                    Steganografi
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="crypto-tab" data-bs-toggle="tab" data-bs-target="#crypto" type="button" onclick="showTab('crypto')">
+                    Kriptografi
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="decryptionTabContent">
+            <!-- Tab Steganografi -->
+            <div class="tab-pane fade" id="stegano">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Dekripsi Steganografi</h5>
+                        <form id="decryptForm" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Pilih Gambar</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".png,.jpg,.jpeg" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="key" class="form-label">Kunci Dekripsi</label>
+                                <input type="number" class="form-control" id="key" name="key" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Dekripsi</button>
+                        </form>
+                        <div id="result" class="result-box mt-3 d-none">
+                            <h6>Hasil Dekripsi:</h6>
+                            <div class="cipher-text">
+                                <strong>Cipher Text:</strong>
+                                <p id="cipherText"></p>
+                            </div>
+                            <div class="plain-text">
+                                <strong>Plain Text:</strong>
+                                <p id="plainText"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Kriptografi -->
+            <div class="tab-pane fade show active" id="crypto">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Dekripsi Kriptografi</h5>
+                        <form id="cryptoDecryptForm">
+                            <div class="mb-3">
+                                <label for="ciphertext" class="form-label">Teks Terenkripsi</label>
+                                <textarea class="form-control" id="ciphertext" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cryptoKey" class="form-label">Kunci Dekripsi</label>
+                                <input type="number" class="form-control" id="cryptoKey" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Dekripsi</button>
+                        </form>
+                        <div id="cryptoResult" class="result-box mt-3 d-none">
+                            <h6>Hasil Dekripsi:</h6>
+                            <div class="plain-text">
+                                <p id="decryptedText"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(tab) {
+    const tabs = ['stegano', 'crypto'];
+    tabs.forEach(t => {
+        const tabElement = document.getElementById(t);
+        const tabButton = document.getElementById(t + '-tab');
+        if (t === tab) {
+            tabElement.classList.add('show', 'active');
+            tabButton.classList.add('active');
+        } else {
+            tabElement.classList.remove('show', 'active');
+            tabButton.classList.remove('active');
+        }
+    });
+}
+
+// Mengambil parameter tab dari URL dan menampilkan tab yang sesuai
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab') || 'crypto';
+    showTab(activeTab);
+});
+
+document.getElementById('decryptForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    try {
+        const response = await fetch('/decode', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        if (result.cipher_text && result.plain_text) {
+            document.getElementById('result').classList.remove('d-none');
+            document.getElementById('cipherText').textContent = result.cipher_text;
+            document.getElementById('plainText').textContent = result.plain_text;
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan: ' + error);
+    }
+});
+
+document.getElementById('cryptoDecryptForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ciphertext = document.getElementById('ciphertext').value;
+    const key = parseInt(document.getElementById('cryptoKey').value);
+    
+    try {
+        const response = await fetch('/decrypt_text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: ciphertext, key: key })
+        });
+        
+        const result = await response.json();
+        
+        if (result.decrypted_text) {
+            document.getElementById('cryptoResult').classList.remove('d-none');
+            document.getElementById('decryptedText').textContent = result.decrypted_text;
+        } else if (result.error) {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan: ' + error);
+    }
+});
+</script>
+{% endblock %} 

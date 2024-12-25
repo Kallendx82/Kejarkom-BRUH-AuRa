@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Enkripsi Steganografi & Kriptografi{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Enkripsi Pesan</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <ul class="nav nav-tabs mb-3" id="encryptionTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="stegano-tab" data-bs-toggle="tab" data-bs-target="#stegano" type="button" onclick="showTab('stegano')">
+                    Steganografi
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="crypto-tab" data-bs-toggle="tab" data-bs-target="#crypto" type="button" onclick="showTab('crypto')">
+                    Kriptografi
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="encryptionTabContent">
+            <!-- Tab Steganografi -->
+            <div class="tab-pane fade show active" id="stegano">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Enkripsi Steganografi</h5>
+                        <form action="/encode" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Pilih Gambar</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".png,.jpg,.jpeg" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Pesan</label>
+                                <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="key" class="form-label">Kunci Enkripsi</label>
+                                <input type="number" class="form-control" id="key" name="key" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Enkripsi dengan Steganografi</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Kriptografi -->
+            <div class="tab-pane fade" id="crypto">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Enkripsi Kriptografi</h5>
+                        <form id="cryptoForm">
+                            <div class="mb-3">
+                                <label for="plaintext" class="form-label">Teks yang akan dienkripsi</label>
+                                <textarea class="form-control" id="plaintext" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cryptoKey" class="form-label">Kunci Enkripsi</label>
+                                <input type="number" class="form-control" id="cryptoKey" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Enkripsi</button>
+                        </form>
+                        <div id="cryptoResult" class="result-box mt-3 d-none">
+                            <h6>Hasil Enkripsi:</h6>
+                            <div class="cipher-text position-relative">
+                                <p id="encryptedText" class="pe-5"></p>
+                                <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0" 
+                                        onclick="copyToClipboard('encryptedText')" 
+                                        title="Copy to clipboard">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(tab) {
+    const tabs = ['stegano', 'crypto'];
+    tabs.forEach(t => {
+        const tabElement = document.getElementById(t);
+        const tabButton = document.getElementById(t + '-tab');
+        if (t === tab) {
+            tabElement.classList.add('show', 'active');
+            tabButton.classList.add('active');
+        } else {
+            tabElement.classList.remove('show', 'active');
+            tabButton.classList.remove('active');
+        }
+    });
+}
+
+// Mengambil parameter tab dari URL dan menampilkan tab yang sesuai
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab') || 'stegano';
+    showTab(activeTab);
+});
+
+document.getElementById('cryptoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const plaintext = document.getElementById('plaintext').value;
+    const key = parseInt(document.getElementById('cryptoKey').value);
+    
+    try {
+        const response = await fetch('/encrypt_text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: plaintext, key: key })
+        });
+        
+        const result = await response.json();
+        
+        if (result.encrypted_text) {
+            document.getElementById('cryptoResult').classList.remove('d-none');
+            // Menampilkan hasil enkripsi dalam format yang lebih rapi
+            const formattedText = result.encrypted_text.split(' ').join(' ');
+            document.getElementById('encryptedText').textContent = formattedText;
+        } else if (result.error) {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan: ' + error);
+    }
+});
+
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        // Ganti icon sementara untuk memberi feedback
+        const button = event.currentTarget;
+        const icon = button.querySelector('i');
+        icon.classList.remove('bi-clipboard');
+        icon.classList.add('bi-clipboard-check');
+        
+        // Kembalikan icon setelah 2 detik
+        setTimeout(() => {
+            icon.classList.remove('bi-clipboard-check');
+            icon.classList.add('bi-clipboard');
+        }, 2000);
+    }).catch(err => {
+        alert('Gagal menyalin teks: ' + err);
+    });
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.cipher-text {
+    position: relative;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-top: 0.5rem;
+    border: 1px solid var(--text-color);
+}
+
+.cipher-text p {
+    margin-bottom: 0;
+    word-break: break-all;
+    color: var(--text-color);
+}
+
+.cipher-text button {
+    margin: 0.5rem;
+}
+
+.cipher-text button:hover {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+</style>
+{% endblock %} 

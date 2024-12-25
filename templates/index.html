@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Beranda - Kejarkom BRUH AuRa{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="mb-4">Kejarkom BRUH AuRa</h1>
+    <p class="lead mb-5">Pilih metode yang ingin Anda gunakan</p>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Steganografi</h5>
+                    <p class="card-text">Teknik menyembunyikan pesan rahasia di dalam gambar digital tanpa mengubah tampilan gambar secara kasat mata.</p>
+                    <div class="card-footer">
+                        <a href="/stegano" class="btn btn-primary">Mulai Steganografi</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Kriptografi</h5>
+                    <p class="card-text">Teknik mengamankan pesan dengan mengubah teks asli menjadi teks terenkripsi menggunakan kunci khusus.</p>
+                    <div class="card-footer">
+                        <a href="/crypto" class="btn btn-primary">Mulai Kriptografi</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

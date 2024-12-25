@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Profil - Kejarkom BRUH AuRa{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center mb-4">Profil Anda</h2>
+            <div class="mb-4 text-center">
+                <div class="profile-container position-relative d-inline-block">
+                    <div id="profileImage" class="rounded-circle overflow-hidden" 
+                         style="width: 100px; height: 100px; border: 2px solid var(--text-color);">
+                        <i id="selectedProfileImage" class="bi bi-person-fill text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <button id="changeProfileImage" class="btn btn-link position-absolute p-0" 
+                            style="bottom: 0; right: 0; width: 24px; height: 24px;">
+                        <i class="bi bi-pencil-fill" style="font-size: 14px; color: var(--primary-color);"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="profileForm">
+                <!-- Nama -->
+                <div class="mb-3">
+                    <label for="yourName" class="form-label">Nama Anda</label>
+                    <input type="text" class="form-control" id="yourName" placeholder="Masukkan nama Anda" required>
+                </div>
+
+                <!-- Provinsi -->
+                <div class="mb-3">
+                    <label for="provinceSelect" class="form-label">Provinsi Anda</label>
+                    <select class="form-select" id="provinceSelect" required>
+                        <option value="">Pilih Provinsi</option>
+                    </select>
+                </div>
+
+                <!-- Kota/Kabupaten -->
+                <div class="mb-3">
+                    <label for="citySelect" class="form-label">Kota/Kabupaten Anda</label>
+                    <select class="form-select" id="citySelect" required>
+                        <option value="">Pilih Kota/Kabupaten</option>
+                    </select>
+                </div>
+
+                <!-- Bio -->
+                <div class="mb-3">
+                    <label for="yourBio" class="form-label">Bio Anda</label>
+                    <textarea class="form-control" id="yourBio" rows="3" placeholder="Masukkan bio Anda"></textarea>
+                </div>
+
+                <!-- Tombol Simpan -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('home') }}" class="btn btn-secondary">Kembali ke Beranda</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Memuat provinsi ke dropdown
+    fetch('/get_locations')
+        .then(response => response.json())
+        .then(data => {
+            const provinceSelect = document.getElementById('provinceSelect');
+            for (const province in data) {
+                const option = document.createElement('option');
+                option.value = province;
+                option.textContent = province;
+                provinceSelect.appendChild(option);
+            }
+        });
+
+    // Mengupdate dropdown kota/kabupaten berdasarkan provinsi yang dipilih
+    document.getElementById('provinceSelect').addEventListener('change', function() {
+        const province = this.value;
+        const citySelect = document.getElementById('citySelect');
+        citySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>'; // Reset dropdown
+
+        fetch('/get_locations')
+            .then(response => response.json())
+            .then(data => {
+                const cities = data[province] || [];
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            });
+    });
+
+    // Menampilkan dropdown untuk memilih gambar profil saat ikon pensil diklik
+    document.getElementById('changeProfileImage').addEventListener('click', function() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Tampilkan gambar yang dipilih
+                    const imageUrl = event.target.result;
+                    document.getElementById('selectedProfileImage').src = imageUrl;
+
+                    // Simpan gambar di localStorage
+                    localStorage.setItem('profileImage', imageUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        input.click();
+    });
+
+    // Load saved profile image
+    window.addEventListener('load', function() {
+        const savedImage = localStorage.getItem('profileImage');
+        if (savedImage) {
+            document.getElementById('selectedProfileImage').src = savedImage;
+        }
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Logika untuk menyimpan perubahan profil
+        const name = document.getElementById('yourName').value;
+        const city = document.getElementById('citySelect').value;
+        const province = document.getElementById('provinceSelect').value;
+        const bio = document.getElementById('yourBio').value;
+
+        // Simpan nama pengguna di localStorage
+        localStorage.setItem('username', name);
+
+        // Simpan data ke server atau local storage
+        console.log('Data Profil:', { name, city, province, bio });
+        alert('Perubahan disimpan!');
+    });
+</script>
+{% endblock %} 
